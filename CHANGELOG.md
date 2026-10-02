@@ -8,16 +8,14 @@ package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
-- The node now runs on [OpenRouter](https://openrouter.ai) chat completions
-  instead of TypeSafe's System One API. Each item is one request with a strict
-  JSON schema built from the questions, and the reply is mapped onto the same
-  answer shapes, so outputs and routing are unchanged.
+- The node now calls TypeSafe's Jev through [OpenRouter](https://openrouter.ai)
+  instead of TypeSafe directly. Requests go to OpenRouter's System One API
+  (`POST https://openrouter.ai/api/v1/systemone`), so questions, answers and
+  routing are unchanged and the usage is billed to the OpenRouter account.
 - The **TypeSafe AI API** credential is replaced by an **OpenRouter API**
   credential (`openRouterApi`).
-- **Model** defaults to `openai/gpt-4o-mini` and lists OpenRouter's models.
-- **Timeout** defaults to 60000 ms.
-- Confidences are the model's own estimates. Choice answers no longer carry
-  `probabilities`.
+- **Model** defaults to `typesafe/jev-1.13` and lists the TypeSafe models
+  OpenRouter serves.
 
 ## 0.9.0
 

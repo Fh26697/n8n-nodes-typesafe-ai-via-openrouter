@@ -320,16 +320,16 @@ describe('buildOutputItem', () => {
 	const item = { json: { ticket: 1, model: 'old' }, binary: { file: { data: '', mimeType: '' } } };
 
 	it('writes the node fields over the incoming ones and carries binary through', () => {
-		expect(buildOutputItem(item, { model: 'jev-1.13.0' }, true, 3)).toEqual({
-			json: { ticket: 1, model: 'jev-1.13.0' },
+		expect(buildOutputItem(item, { model: 'typesafe/jev-1.13' }, true, 3)).toEqual({
+			json: { ticket: 1, model: 'typesafe/jev-1.13' },
 			binary: item.binary,
 			pairedItem: { item: 3 },
 		});
 	});
 
 	it('drops the incoming fields and binary when not including them', () => {
-		expect(buildOutputItem(item, { model: 'jev-1.13.0' }, false, 3)).toEqual({
-			json: { model: 'jev-1.13.0' },
+		expect(buildOutputItem(item, { model: 'typesafe/jev-1.13' }, false, 3)).toEqual({
+			json: { model: 'typesafe/jev-1.13' },
 			pairedItem: { item: 3 },
 		});
 	});

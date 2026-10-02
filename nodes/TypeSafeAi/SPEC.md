@@ -7,7 +7,7 @@ requirement is stated so that an implementation can be checked against it.
 - **SHOULD** — strong default; deviation needs a recorded reason.
 - **MAY** — permitted.
 
-This document specifies _what the node does_ for the person using it. It does
+This document specifies *what the node does* for the person using it. It does
 not name internal parameters, files or functions; those belong to the
 implementation.
 
@@ -20,27 +20,27 @@ Names shown in code formatting are the TypeSafe API's own, reproduced from
 
 A single node exposing two operations:
 
-| Operation | Purpose                                                                                                                       |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Evaluate  | Evaluate one state against one or more typed questions. One main output.                                                      |
-| Route     | Evaluate one state against a single Choice, Noul or Score question and send the item to the matching output. Dynamic outputs. |
+| Operation | Purpose |
+| --- | --- |
+| Evaluate | Evaluate one state against one or more typed questions. One main output. |
+| Route | Evaluate one state against a single Choice, Noul or Score question and send the item to the matching output. Dynamic outputs. |
 
 ---
 
 ## 2. Package
 
-| Field             | Value                                                          |
-| ----------------- | -------------------------------------------------------------- |
-| `name`            | `@typesafe-ai/n8n-nodes-typesafe-ai`                           |
-| `license`         | `MIT`                                                          |
-| `author.name`     | `TypeSafe AI`                                                  |
-| `author.email`    | `support@typesafe.ai`                                          |
-| `repository.type` | `git`                                                          |
-| `repository.url`  | `git+https://github.com/typesafe-ai/n8n-nodes-typesafe-ai.git` |
-| `homepage`        | `https://github.com/typesafe-ai/n8n-nodes-typesafe-ai#readme`  |
-| `bugs.url`        | `https://github.com/typesafe-ai/n8n-nodes-typesafe-ai/issues`  |
-| `keywords`        | MUST include `n8n-community-node-package`                      |
-| `files`           | `["dist"]`                                                     |
+| Field | Value |
+| --- | --- |
+| `name` | `@typesafe-ai/n8n-nodes-typesafe-ai` |
+| `license` | `MIT` |
+| `author.name` | `TypeSafe AI` |
+| `author.email` | `support@typesafe.ai` |
+| `repository.type` | `git` |
+| `repository.url` | `git+https://github.com/typesafe-ai/n8n-nodes-typesafe-ai.git` |
+| `homepage` | `https://github.com/typesafe-ai/n8n-nodes-typesafe-ai#readme` |
+| `bugs.url` | `https://github.com/typesafe-ai/n8n-nodes-typesafe-ai/issues` |
+| `keywords` | MUST include `n8n-community-node-package` |
+| `files` | `["dist"]` |
 
 Requirements:
 
@@ -65,33 +65,6 @@ Dev dependencies are exempt from rules 1–3.
 
 ---
 
-## 2a. Backend
-
-The node calls OpenRouter's OpenAI-compatible `POST {host}/v1/chat/completions`,
-one request per item:
-
-1. A system message explains the task. The user message holds the state (text
-   as written, JSON pretty-printed) and the questions, with each choice's
-   options, each score's levels keyed by index, and each noul's meanings.
-2. `response_format` is `{ type: 'json_schema', json_schema: { name: 'answers',
-strict: true, schema } }`. The schema has one required object per question
-   ID: Choice `{ choice: enum of option names, confidence: number }`, Score
-   `{ score: integer enum of level indexes, confidence: number }`, Noul
-   `{ noul: number }`. `temperature` is `0`.
-3. The reply's first message content is parsed as JSON (a surrounding code
-   fence is tolerated) and mapped onto the answer shapes in section 7:
-   probabilities and confidences are clamped to 0–1, a boolean noul becomes 1
-   or 0, and a score answer carries a `legend` of its levels. `model` and
-   `usage` come from the completion.
-4. A reply that is not JSON, misses a question, or picks a choice outside the
-   options MUST fail the item with a node API error saying so.
-5. An HTTP error shows OpenRouter's `error.message`, otherwise `The OpenRouter
-API returned status X`.
-6. Confidence is the model's self-reported estimate. It is not calibrated, and
-   Choice answers carry no `probabilities`.
-
----
-
 ## 3. Credential
 
 Identified as `openRouterApi` and displayed as **OpenRouter API**.
@@ -100,10 +73,10 @@ carry the node's light and dark icons.
 
 ### 3.1 Fields
 
-| Label            | Visible     | Required | Default                     | Purpose                  |
-| ---------------- | ----------- | -------- | --------------------------- | ------------------------ |
-| API Key          | yes, masked | yes      | —                           | Bearer token for the API |
-| Base URL (`url`) | no          | no       | `https://openrouter.ai/api` | Host the node calls      |
+| Label | Visible | Required | Default | Purpose |
+| --- | --- | --- | --- | --- |
+| API Key | yes, masked | yes | — | Bearer token for the API |
+| Base URL | no | no | `https://openrouter.ai/api` | Host the node calls |
 
 1. The API key MUST be stored and displayed as a password field.
 2. The base URL MUST be present in the credential schema but hidden from the
@@ -127,18 +100,18 @@ carry the node's light and dark icons.
 
 ## 4. Node identity
 
-| Property              | Value                                                                    |
-| --------------------- | ------------------------------------------------------------------------ |
-| Display name          | `TypeSafe AI via OpenRouter`                                             |
-| Identifier            | `typeSafeAi`                                                             |
-| Group                 | `transform`                                                              |
-| Version               | `1`                                                                      |
-| Description           | `Ask any OpenRouter model typed questions and route items by the answer` |
-| Default instance name | `TypeSafe AI via OpenRouter`                                             |
-| Subtitle              | The selected operation                                                   |
-| Inputs                | One main input                                                           |
-| Outputs               | Per §8.3                                                                 |
-| Credential            | The credential in §3, required                                           |
+| Property | Value |
+| --- | --- |
+| Display name | `TypeSafe AI` |
+| Identifier | `typeSafeAi` |
+| Group | `transform` |
+| Version | `1` |
+| Description | `Ask TypeSafe typed questions and get calibrated probabilities` |
+| Default instance name | `TypeSafe AI` |
+| Subtitle | The selected operation |
+| Inputs | One main input |
+| Outputs | Per §8.3 |
+| Credential | The credential in §3, required |
 
 1. The node MUST ship separate light and dark SVG icons.
 2. The node MUST be usable as an AI Agent tool.
@@ -147,13 +120,13 @@ carry the node's light and dark icons.
 
 The node's codex file MUST declare:
 
-| Key                                 | Value                                           |
-| ----------------------------------- | ----------------------------------------------- |
-| `node`                              | `@typesafe-ai/n8n-nodes-typesafe-ai.typeSafeAi` |
-| `categories`                        | `["Development", "Utility"]`                    |
-| `resources.primaryDocumentation`    | `https://docs.typesafe.ai`                      |
-| `resources.credentialDocumentation` | `https://docs.typesafe.ai`                      |
-| `alias`                             | see below                                       |
+| Key | Value |
+| --- | --- |
+| `node` | `@typesafe-ai/n8n-nodes-typesafe-ai.typeSafeAi` |
+| `categories` | `["Development", "Utility"]` |
+| `resources.primaryDocumentation` | `https://docs.typesafe.ai` |
+| `resources.credentialDocumentation` | `https://docs.typesafe.ai` |
+| `alias` | see below |
 
 `node` MUST be the package name followed by the node identifier.
 
@@ -190,10 +163,10 @@ Fields are identified by the label the user sees.
 
 Required. Default **Evaluate**.
 
-| Label    | Behaviour                                                                                  |
-| -------- | ------------------------------------------------------------------------------------------ |
-| Evaluate | Evaluate the state against System One questions and output answers.                        |
-| Route    | Evaluate the state against a System One question and send the item to the matching output. |
+| Label | Behaviour |
+| --- | --- |
+| Evaluate | Evaluate the state against System One questions and output answers. |
+| Route | Evaluate the state against a System One question and send the item to the matching output. |
 
 The operation MUST NOT be settable by expression, so an AI Agent cannot change
 it at runtime.
@@ -205,27 +178,29 @@ offered there.
 
 ### 5.2 Model
 
-Required, both operations. Default `openai/gpt-4o-mini`, which supports structured outputs.
+Required, both operations. Default `typesafe/jev-1.13`. The node reaches Jev through OpenRouter, which
+serves TypeSafe's System One API at `POST {host}/v1/systemone`.
 
 The user MUST be able to either:
 
-1. **Pick from a list** of the models their account can use, fetched live from
-   OpenRouter's `GET /v1/models`, searchable by ID or name, each entry showing
-   the model's name and description; or
-2. **Enter an ID directly**, for example `openai/gpt-4o-mini`.
+1. **Pick from a list** of the TypeSafe models OpenRouter serves (IDs starting
+   `typesafe/`, excluding the chat router `typesafe/jev-router`), fetched live
+   from `GET {host}/v1/models`, searchable, each entry showing the model's
+   description; or
+2. **Enter an ID directly**, for example `~typesafe/jev-latest`.
 
 A directly entered ID MUST be accepted even when it does not appear in the
-list, because OpenRouter accepts IDs and variants it does not list.
+list, because the API accepts versioned IDs it does not advertise.
 
 ### 5.3 State
 
 **State Format** — required, both operations, default **Text**.
 
-| Label      | What is sent as the state                                         |
-| ---------- | ----------------------------------------------------------------- |
-| Text       | The content of the **State** field.                               |
-| JSON       | The parsed content of the **State** field, as an object or array. |
-| Input Item | The incoming item's JSON, unchanged.                              |
+| Label | What is sent as the state |
+| --- | --- |
+| Text | The content of the **State** field. |
+| JSON | The parsed content of the **State** field, as an object or array. |
+| Input Item | The incoming item's JSON, unchanged. |
 
 **State** — shown for Text. Required, multi-line. If an expression resolves it
 to an object, that object MUST be sent as structured state rather than
@@ -242,42 +217,42 @@ always sees a single field called **State**.
 
 **Questions Format** — required, default **Using Fields Below**.
 
-| Label              | Behaviour                                                                           |
-| ------------------ | ----------------------------------------------------------------------------------- |
-| Using Fields Below | Build the questions from the list below.                                            |
-| Using Raw JSON     | Take the questions map as written, supporting structured instructions and criteria. |
+| Label | Behaviour |
+| --- | --- |
+| Using Fields Below | Build the questions from the list below. |
+| Using Raw JSON | Take the questions map as written, supporting structured instructions and criteria. |
 
 **Questions** — shown for Using Fields Below. A reorderable list, one entry per
 question, each entry titled by its **ID**. Each entry has:
 
-| Label          | Required | Shown when | Meaning                                                      |
-| -------------- | -------- | ---------- | ------------------------------------------------------------ |
-| Question Type  | yes      | always     | Choice, Noul (Yes/No) or Score. Default Noul.                |
-| ID             | yes      | always     | The key the answer is returned under. Not sent to the model. |
-| Instructions   | yes      | always     | The question itself.                                         |
-| Choice Options | yes      | Choice     | The list of options to choose between. See below.            |
-| Levels         | yes      | Score      | The ordered list of levels. See below.                       |
-| True Means     | no       | Noul       | What a yes (value near 1) means.                             |
-| False Means    | no       | Noul       | What a no (value near 0) means.                              |
+| Label | Required | Shown when | Meaning |
+| --- | --- | --- | --- |
+| Question Type | yes | always | Choice, Noul (Yes/No) or Score. Default Noul. |
+| ID | yes | always | The key the answer is returned under. Not sent to the model. |
+| Instructions | yes | always | The question itself. |
+| Choice Options | yes | Choice | The list of options to choose between. See below. |
+| Levels | yes | Score | The ordered list of levels. See below. |
+| True Means | no | Noul | What a yes (value near 1) means. |
+| False Means | no | Noul | What a no (value near 0) means. |
 
 **Choice Options** is a reorderable list nested inside the question, with an
-_Add Option_ button. Each entry is titled by its **Name**. Each entry
+*Add Option* button. Each entry is titled by its **Name**. Each entry
 has:
 
-| Label       | Required | Meaning                                                 |
-| ----------- | -------- | ------------------------------------------------------- |
-| Name        | yes      | The option, sent to the API and returned as the answer. |
-| Description | no       | A description of that option, used as its rubric.       |
+| Label | Required | Meaning |
+| --- | --- | --- |
+| Name | yes | The option, sent to the API and returned as the answer. |
+| Description | no | A description of that option, used as its rubric. |
 
 **Levels** is a reorderable list nested inside the question, with an
-_Add Level_ button. Each entry is titled by its position and its **Level**
+*Add Level* button. Each entry is titled by its position and its **Level**
 text, as in `Level 3: Frustrated`, keeping the position even while the text is
 blank so that the order stays readable as the list is filled in. Each entry
 has:
 
-| Label | Required | Meaning                    |
-| ----- | -------- | -------------------------- |
-| Level | yes      | What this level describes. |
+| Label | Required | Meaning |
+| --- | --- | --- |
+| Level | yes | What this level describes. |
 
 Both lists MUST start with two empty entries, matching their minimum, so the
 user sees the shape a usable question needs rather than having to discover it.
@@ -308,18 +283,18 @@ is ever visible.
 
 A route is decided by one question, of any of the three types.
 
-| Label                       | Required | Default           | Shown when                            | Meaning                                                                              |
-| --------------------------- | -------- | ----------------- | ------------------------------------- | ------------------------------------------------------------------------------------ |
-| Question Type               | yes      | Choice            | always                                | Choice, Noul (Yes/No) or Score.                                                      |
-| Instructions                | yes      | —                 | always                                | What the model should decide.                                                        |
-| Routes                      | yes      | —                 | Choice                                | A reorderable list of two to 255 routes; each entry becomes an output.               |
-| Confidence Handling         | yes      | Always Route      | Choice                                | See §8.3.                                                                            |
-| Confidence Threshold        | no       | `0.5`             | Choice, and a Fallback output enabled | Range 0–1.                                                                           |
-| True Means                  | no       | —                 | Noul                                  | What a yes (value near 1) means. Also labels the output.                             |
-| False Means                 | no       | —                 | Noul                                  | What a no (value near 0) means. Also labels the output.                              |
-| True Probability Threshold  | no       | `0.5`             | Noul                                  | At or above this, the item is a yes. Range 0–1.                                      |
-| False Probability Threshold | no       | `0.5`             | Noul                                  | At or below this, the item is a no. Range 0–1.                                       |
-| Levels                      | yes      | two empty entries | Score                                 | A reorderable list of two to ten levels, lowest first; each entry becomes an output. |
+| Label | Required | Default | Shown when | Meaning |
+| --- | --- | --- | --- | --- |
+| Question Type | yes | Choice | always | Choice, Noul (Yes/No) or Score. |
+| Instructions | yes | — | always | What the model should decide. |
+| Routes | yes | — | Choice | A reorderable list of two to 255 routes; each entry becomes an output. |
+| Confidence Handling | yes | Always Route | Choice | See §8.3. |
+| Confidence Threshold | no | `0.5` | Choice, and a Fallback output enabled | Range 0–1. |
+| True Means | no | — | Noul | What a yes (value near 1) means. Also labels the output. |
+| False Means | no | — | Noul | What a no (value near 0) means. Also labels the output. |
+| True Probability Threshold | no | `0.5` | Noul | At or above this, the item is a yes. Range 0–1. |
+| False Probability Threshold | no | `0.5` | Noul | At or below this, the item is a no. Range 0–1. |
+| Levels | yes | two empty entries | Score | A reorderable list of two to ten levels, lowest first; each entry becomes an output. |
 
 Confidence Handling and Confidence Threshold are offered only for a Choice,
 because the API returns no confidence for a Noul. The Noul equivalent is the
@@ -333,10 +308,10 @@ per §7.
 
 Each **Routes** entry is titled by its **Name**:
 
-| Label       | Required | Meaning                                                               |
-| ----------- | -------- | --------------------------------------------------------------------- |
-| Name        | yes      | Sent to the API as the Choice option, and used as the output's label. |
-| Description | no       | The criteria for choosing this route.                                 |
+| Label | Required | Meaning |
+| --- | --- | --- |
+| Name | yes | Sent to the API as the Choice option, and used as the output's label. |
+| Description | no | The criteria for choosing this route. |
 
 Each **Levels** entry is titled and filled in exactly as a Score question's
 levels in §5.4.
@@ -353,11 +328,11 @@ an option's.
 
 A collection, shown for both operations unless noted.
 
-| Label                      | Type             | Default | Meaning                                                                                                              |
-| -------------------------- | ---------------- | ------- | -------------------------------------------------------------------------------------------------------------------- |
-| Include Other Input Fields | boolean          | `true`  | Keep the incoming item's fields alongside the result.                                                                |
-| Simplify                   | boolean          | `true`  | Keep each answer's value and confidence instead of returning the full response. Applies to both operations.          |
-| Timeout                    | number, min 1000 | `60000` | Time in ms to wait for the server to send response headers (and start the response body) before aborting the request |
+| Label | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| Include Other Input Fields | boolean | `true` | Keep the incoming item's fields alongside the result. |
+| Simplify | boolean | `true` | Keep each answer's value and confidence instead of returning the full response. Applies to both operations. |
+| Timeout | number, min 1000 | `5000` | Time in ms to wait for the server to send response headers (and start the response body) before aborting the request |
 
 There MUST NOT be an option for renaming the output field. See §8.4.
 
@@ -373,11 +348,11 @@ One request per input item, to `POST {host}/v1/systemone`, carrying exactly
 Each configured question becomes one entry in the `questions` map, keyed by its
 **ID**, carrying its type and `instructions` plus:
 
-| Question Type | `criteria` sent                                                                                |
-| ------------- | ---------------------------------------------------------------------------------------------- |
-| Choice        | A map of option to description, with `null` where no description was given.                    |
-| Score         | An ordered array of level descriptions, lowest first.                                          |
-| Noul          | An object with the given `true` and/or `false` meanings. Omitted entirely when both are blank. |
+| Question Type | `criteria` sent |
+| --- | --- |
+| Choice | A map of option to description, with `null` where no description was given. |
+| Score | An ordered array of level descriptions, lowest first. |
+| Noul | An object with the given `true` and/or `false` meanings. Omitted entirely when both are blank. |
 
 **Choice options** are sent in the order listed, each **Name** mapped to its
 **Description** text, or to `null` where that is blank.
@@ -418,20 +393,20 @@ One output item per input item:
 
 ```json
 {
-	"answers": {
-		"is_urgent": { "noul": 0.95 },
-		"department": { "choice": "billing", "confidence": 0.81 },
-		"frustration": { "score": 1.05, "confidence": 0.92 }
-	},
-	"model": "openai/gpt-4o-mini"
+  "answers": {
+    "is_urgent":   { "noul": 0.95 },
+    "department":  { "choice": "billing", "confidence": 0.81 },
+    "frustration": { "score": 1.05, "confidence": 0.92 }
+  },
+  "model": "typesafe/jev-1.13"
 }
 ```
 
-| Question Type | Keys under each answer                                |
-| ------------- | ----------------------------------------------------- |
-| Noul          | `noul` — the probability of yes (0–1)                 |
-| Choice        | `choice` — the chosen option; `confidence`            |
-| Score         | `score` — the position along the levels; `confidence` |
+| Question Type | Keys under each answer |
+| --- | --- |
+| Noul | `noul` — the probability of yes (0–1) |
+| Choice | `choice` — the chosen option; `confidence` |
+| Score | `score` — the position along the levels; `confidence` |
 
 1. The container MUST be named `answers` and keyed by question ID.
 2. Each answer MUST be a nested object, not a set of sibling keys distinguished
@@ -445,11 +420,7 @@ One output item per input item:
 ### 8.2 Evaluate, raw (Simplify off)
 
 ```json
-{
-	"answers": {},
-	"model": "openai/gpt-4o-mini",
-	"usage": { "prompt_tokens": 296, "completion_tokens": 20 }
-}
+{ "answers": { }, "model": "typesafe/jev-1.13", "usage": { "input_tokens": 296, "output_tokens": 20 } }
 ```
 
 `answers` MUST be the API's map unchanged. Token `usage` MUST appear only here.
@@ -463,34 +434,26 @@ under the same rule as §8.2, only when **Simplify** is off.
 Choice, simplified and raw:
 
 ```json
-{ "route": { "choice": "billing", "confidence": 0.81 }, "model": "openai/gpt-4o-mini" }
+{ "route": { "choice": "billing", "confidence": 0.81 }, "model": "typesafe/jev-1.13" }
 ```
 
 ```json
-{
-	"route": {
-		"type": "choice",
-		"choice": "billing",
-		"confidence": 0.81,
-		"probabilities": { "billing": 0.88, "technical": 0.12 }
-	},
-	"model": "openai/gpt-4o-mini",
-	"usage": { "prompt_tokens": 296, "completion_tokens": 20 }
-}
+{ "route": { "type": "choice", "choice": "billing", "confidence": 0.81,
+             "probabilities": { "billing": 0.88, "technical": 0.12 } },
+  "model": "typesafe/jev-1.13",
+  "usage": { "input_tokens": 296, "output_tokens": 20 } }
 ```
 
 Noul, simplified and raw:
 
 ```json
-{ "route": { "noul": 0.85 }, "model": "openai/gpt-4o-mini" }
+{ "route": { "noul": 0.85 }, "model": "typesafe/jev-1.13" }
 ```
 
 ```json
-{
-	"route": { "type": "noul", "noul": 0.85 },
-	"model": "openai/gpt-4o-mini",
-	"usage": { "prompt_tokens": 296, "completion_tokens": 20 }
-}
+{ "route": { "type": "noul", "noul": 0.85 },
+  "model": "typesafe/jev-1.13",
+  "usage": { "input_tokens": 296, "output_tokens": 20 } }
 ```
 
 Which outcome an item met is told by the output it leaves from; it is not
@@ -500,10 +463,10 @@ Outputs for a **Choice**:
 
 1. One output per configured route, in the order the routes are listed,
    labelled with the route's **Name**.
-2. When **Confidence Handling** is _Route to Separate Fallback Output_, one
+2. When **Confidence Handling** is *Route to Separate Fallback Output*, one
    further output labelled `Fallback` is appended last. An item goes
    there when its confidence is below **Confidence Threshold**.
-3. When it is _Always Route_, there is no extra output and every
+3. When it is *Always Route*, there is no extra output and every
    item follows the chosen route.
 
 Outputs for a **Noul**, in this order:
@@ -523,15 +486,15 @@ Outputs for a **Score**:
 
 7. One output per level, in the order the levels are listed, labelled with the
    level's text, or `Level N` (its position, from 0) while that is blank.
-8. An item goes to the level nearest its score: level _i_ takes scores from
-   _i_ − 0.5 up to, but not including, _i_ + 0.5. A score exactly halfway goes
+8. An item goes to the level nearest its score: level *i* takes scores from
+   *i* − 0.5 up to, but not including, *i* + 0.5. A score exactly halfway goes
    to the higher level. A score below the lowest level or above the highest
    goes to that end.
 
 Score, simplified:
 
 ```json
-{ "route": { "score": 1.3, "confidence": 0.9 }, "model": "openai/gpt-4o-mini" }
+{ "route": { "score": 1.3, "confidence": 0.9 }, "model": "typesafe/jev-1.13" }
 ```
 
 9. The outputs shown in the editor MUST match those produced at runtime.

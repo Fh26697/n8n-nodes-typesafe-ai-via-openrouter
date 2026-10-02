@@ -209,7 +209,7 @@ export class TypeSafeAi implements INodeType {
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{ $parameter["operation"] }}',
-		description: 'Ask any OpenRouter model typed questions and route items by the answer',
+		description: 'Ask TypeSafe Jev typed questions through OpenRouter and get calibrated probabilities',
 		defaults: { name: 'TypeSafe AI via OpenRouter' },
 		usableAsTool: true,
 		inputs: [NodeConnectionTypes.Main],
@@ -269,7 +269,7 @@ export class TypeSafeAi implements INodeType {
 					model: this.getNodeParameter('model', itemIndex, '', { extractValue: true }) as string,
 					questions: buildQuestions(this, context, operation),
 				} as IDataObject,
-				this.getNodeParameter('options.timeout', itemIndex, 60000) as number,
+				this.getNodeParameter('options.timeout', itemIndex, 5000) as number,
 			);
 
 			if (!isRoute) {
