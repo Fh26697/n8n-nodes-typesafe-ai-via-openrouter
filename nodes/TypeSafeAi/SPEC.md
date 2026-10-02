@@ -184,10 +184,11 @@ serves TypeSafe's System One API at `POST {host}/v1/systemone`.
 The user MUST be able to either:
 
 1. **Pick from a list** of the TypeSafe models OpenRouter serves (IDs starting
-   `typesafe/`, excluding the chat router `typesafe/jev-router`), fetched live
+   `typesafe/`, excluding the chat router `typesafe/jev-router`; the
+   `~typesafe/jev-latest` alias is also a chat router and is not listed), fetched live
    from `GET {host}/v1/models`, searchable, each entry showing the model's
    description; or
-2. **Enter an ID directly**, for example `~typesafe/jev-latest`.
+2. **Enter an ID directly**, for example `typesafe/jev-1.13`.
 
 A directly entered ID MUST be accepted even when it does not appear in the
 list, because the API accepts versioned IDs it does not advertise.
