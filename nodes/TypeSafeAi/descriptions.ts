@@ -1,6 +1,6 @@
 import type { INodeProperties } from 'n8n-workflow';
 
-import { LEVEL_BOUNDS, OPTION_BOUNDS } from './api';
+import { DEFAULT_MODEL, LEVEL_BOUNDS, OPTION_BOUNDS } from './api';
 
 const QUESTIONS_JSON_EXAMPLE = JSON.stringify(
 	{
@@ -218,8 +218,8 @@ export const typeSafeAiProperties: INodeProperties[] = [
 		name: 'model',
 		type: 'resourceLocator',
 		required: true,
-		default: { mode: 'list', value: 'jev-latest', cachedResultName: 'jev-latest' },
-		description: 'Which model to use',
+		default: { mode: 'list', value: DEFAULT_MODEL, cachedResultName: 'OpenAI: GPT-4o-mini' },
+		description: 'The OpenRouter model to use. It must support structured outputs (JSON schema).',
 		modes: [
 			{
 				displayName: 'From List',
@@ -231,7 +231,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 				displayName: 'By ID',
 				name: 'id',
 				type: 'string',
-				placeholder: 'e.g. jev-latest',
+				placeholder: 'e.g. openai/gpt-4o-mini',
 			},
 		],
 	},
@@ -257,7 +257,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 		typeOptions: { rows: 4 },
 		displayOptions: { show: { stateFormat: ['text'] } },
 		description: 'The content to evaluate',
-		placeholder: 'Add content for TypeSafe to evaluate',
+		placeholder: 'Add content for the model to evaluate',
 	},
 	{
 		displayName: 'State',
@@ -267,7 +267,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 		default: '{}',
 		displayOptions: { show: { stateFormat: ['json'] } },
 		description: 'The content to evaluate',
-		placeholder: 'Add content for TypeSafe to evaluate',
+		placeholder: 'Add content for the model to evaluate',
 	},
 	{
 		displayName: 'Questions Format',
@@ -304,7 +304,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 		default: QUESTIONS_JSON_EXAMPLE,
 		typeOptions: { rows: 12 },
 		displayOptions: { show: { operation: ['evaluate'], questionsFormat: ['json'] } },
-		description: 'A map of question ID to question, sent to the API as written',
+		description: 'A map of question ID to question',
 	},
 	{
 		displayName: 'Question Type',
@@ -414,7 +414,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 			},
 		},
 		description: 'Items answered with less confidence than this go to the Fallback output',
-		hint: 'How sure the model needs to be before an item follows its route (0.0 - 1.0).<br /><a href="https://docs.typesafe.ai/confidence" target="_blank">See docs</a> for more information on how TypeSafe reports confidence.',
+		hint: 'How sure the model needs to be before an item follows its route (0.0 - 1.0).<br /><a href="https://docs.typesafe.ai/confidence" target="_blank">See docs</a> for more information on confidence. The model reports its own confidence.',
 	},
 	{
 		displayName: 'True Means',
@@ -485,7 +485,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 				displayName: 'Timeout',
 				name: 'timeout',
 				type: 'number',
-				default: 5000,
+				default: 60000,
 				typeOptions: { minValue: 1000 },
 				description:
 					'Time in ms to wait for the server to send response headers (and start the response body) before aborting the request',

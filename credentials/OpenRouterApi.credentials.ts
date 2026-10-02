@@ -8,12 +8,12 @@ import type {
 
 import { BASE_URL_EXPRESSION, DEFAULT_BASE_URL } from '../nodes/TypeSafeAi/api';
 
-export class TypeSafeAiApi implements ICredentialType {
-	name = 'typeSafeAiApi';
+export class OpenRouterApi implements ICredentialType {
+	name = 'openRouterApi';
 
-	displayName = 'TypeSafe AI API';
+	displayName = 'OpenRouter API';
 
-	documentationUrl = 'https://docs.typesafe.ai';
+	documentationUrl = 'https://openrouter.ai/docs';
 
 	icon: Icon = {
 		light: 'file:../nodes/TypeSafeAi/typeSafeAi.svg',
@@ -28,11 +28,11 @@ export class TypeSafeAiApi implements ICredentialType {
 			typeOptions: { password: true },
 			required: true,
 			default: '',
-			description: 'Create one in the TypeSafe AI console',
+			description: 'Create one at openrouter.ai/keys',
 		},
 		{
 			displayName: 'Base URL',
-			name: 'baseUrl',
+			name: 'url',
 			type: 'hidden',
 			default: DEFAULT_BASE_URL,
 		},

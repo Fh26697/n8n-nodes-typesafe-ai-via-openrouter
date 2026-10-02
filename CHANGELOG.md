@@ -4,6 +4,21 @@ All notable changes to this package are documented in this file. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.10.0
+
+### Changed
+
+- The node now runs on [OpenRouter](https://openrouter.ai) chat completions
+  instead of TypeSafe's System One API. Each item is one request with a strict
+  JSON schema built from the questions, and the reply is mapped onto the same
+  answer shapes, so outputs and routing are unchanged.
+- The **TypeSafe AI API** credential is replaced by an **OpenRouter API**
+  credential (`openRouterApi`).
+- **Model** defaults to `openai/gpt-4o-mini` and lists OpenRouter's models.
+- **Timeout** defaults to 60000 ms.
+- Confidences are the model's own estimates. Choice answers no longer carry
+  `probabilities`.
+
 ## 0.9.0
 
 Initial release.

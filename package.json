@@ -1,14 +1,14 @@
 {
 	"name": "@typesafe-ai/n8n-nodes-typesafe-ai",
-	"version": "0.9.0",
-	"description": "Ask TypeSafe AI's System One models (Jev!) typed questions and route items by the answer, with calibrated probabilities",
+	"version": "0.10.0",
+	"description": "Ask typed questions to any OpenRouter model and route items by the answer",
 	"license": "MIT",
 	"homepage": "https://github.com/typesafe-ai/n8n-nodes-typesafe-ai#readme",
 	"keywords": [
 		"n8n-community-node-package",
 		"n8n",
 		"typesafe",
-		"typesafe-ai",
+		"openrouter",
 		"jev",
 		"system-one",
 		"classification",
@@ -49,7 +49,7 @@
 		"n8nNodesApiVersion": 1,
 		"strict": true,
 		"credentials": [
-			"dist/credentials/TypeSafeAiApi.credentials.js"
+			"dist/credentials/OpenRouterApi.credentials.js"
 		],
 		"nodes": [
 			"dist/nodes/TypeSafeAi/TypeSafeAi.node.js"

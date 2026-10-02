@@ -4,6 +4,28 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { TypeSafeAi } from '../nodes/TypeSafeAi/TypeSafeAi.node';
 
+/** A chat completion whose message is the given answers as JSON */
+function chat(answers: unknown, usage = { prompt_tokens: 296, completion_tokens: 20 }) {
+	return {
+		statusCode: 200,
+		body: {
+			model: 'openai/gpt-4o-mini',
+			choices: [{ message: { role: 'assistant', content: JSON.stringify(answers) } }],
+			usage,
+		},
+	};
+}
+
+type SentBody = {
+	model: string;
+	messages: Array<{ role: string; content: string }>;
+	response_format: { json_schema: { schema: { properties: Record<string, unknown> } } };
+};
+
+function sentBody(request: { mock: { calls: unknown[] } }): SentBody {
+	return (request.mock.calls[0] as [unknown, { body: SentBody }])[1].body;
+}
+
 const node: INode = {
 	id: 'a',
 	name: 'TypeSafe AI',
@@ -24,21 +46,7 @@ const routeParameters: Record<string, unknown> = {
 };
 
 function choiceResponse(choice: string, confidence: number) {
-	return {
-		statusCode: 200,
-		body: {
-			model: 'jev-1.13.0',
-			answers: {
-				route: {
-					type: 'choice',
-					choice,
-					confidence,
-					probabilities: { billing: confidence, technical: Number((1 - confidence).toFixed(2)) },
-				},
-			},
-			usage: { input_tokens: 1, output_tokens: 1 },
-		},
-	};
+	return chat({ route: { choice, confidence } });
 }
 
 function createFunctions(
@@ -86,21 +94,17 @@ describe('Route', () => {
 		expect(outputs[1][0].json).toEqual({
 			ticket: 1,
 			route: { choice: 'technical', confidence: 0.9 },
-			model: 'jev-1.13.0',
+			model: 'openai/gpt-4o-mini',
 		});
 		expect(outputs[2]).toHaveLength(0);
 
-		const body = (request.mock.calls[0] as unknown as [unknown, { body: unknown }])[1].body;
-		expect(body).toEqual({
-			state: { ticket: 1 },
-			model: 'jev-latest',
-			questions: {
-				route: {
-					type: 'choice',
-					instructions: 'Which department should handle this?',
-					criteria: { billing: null, technical: null },
-				},
-			},
+		const body = sentBody(request);
+		expect(body.model).toBe('jev-latest');
+		expect(body.messages[1].content).toContain('"ticket": 1');
+		expect(body.messages[1].content).toContain('Which department should handle this?');
+		expect(body.response_format.json_schema.schema.properties.route).toMatchObject({
+			properties: { choice: { type: 'string', enum: ['billing', 'technical'] } },
+			required: ['choice', 'confidence'],
 		});
 	});
 
@@ -128,7 +132,10 @@ describe('Route', () => {
 });
 
 describe('Route errors with Continue On Fail', () => {
-	const failure = () => ({ statusCode: 500, body: { detail: 'Server exploded' } });
+	const failure = () => ({
+		statusCode: 500,
+		body: { error: { message: 'Server exploded', code: 500 } },
+	});
 
 	it('sends a failing item to the Fallback, not to the first route', async () => {
 		const { functions } = createFunctions(routeParameters, items, failure, true);
@@ -160,7 +167,7 @@ describe('Route errors with Continue On Fail', () => {
 		expect(outputs[2][0].error?.message).toBe('Server exploded');
 	});
 
-	it('attaches a configuration error to the item', async () => {
+	it('attaches an answer outside the routes to the item', async () => {
 		const { functions } = createFunctions(
 			routeParameters,
 			items,
@@ -169,8 +176,8 @@ describe('Route errors with Continue On Fail', () => {
 		);
 		const outputs = await TypeSafeAi.prototype.execute.call(functions);
 
-		expect(outputs[2][0].error).toBeInstanceOf(NodeOperationError);
-		expect(outputs[2][0].json.error).toMatch(/not one of the configured routes/);
+		expect(outputs[2][0].error).toBeInstanceOf(NodeApiError);
+		expect(outputs[2][0].json.error).toMatch(/"sales", which is not one of its options/);
 	});
 
 	it('wraps a request that throws, such as a timeout, as a node error', async () => {
@@ -214,14 +221,7 @@ describe('Route by Noul', () => {
 		falseThreshold: 0.2,
 	};
 
-	const noulResponse = (noul: number) => () => ({
-		statusCode: 200,
-		body: {
-			model: 'jev-1.13.0',
-			answers: { route: { type: 'noul', noul } },
-			usage: { input_tokens: 296, output_tokens: 20 },
-		},
-	});
+	const noulResponse = (noul: number) => () => chat({ route: { noul } });
 
 	async function route(parameters: Record<string, unknown>, noul: number, continueOnFail = false) {
 		const { functions, request } = createFunctions(
@@ -235,18 +235,14 @@ describe('Route by Noul', () => {
 
 	it('asks a noul question carrying both meanings', async () => {
 		const { request } = await route(noulParameters, 0.9);
-		const body = (request.mock.calls[0] as unknown as [unknown, { body: unknown }])[1].body;
+		const body = sentBody(request);
 
-		expect(body).toEqual({
-			state: { ticket: 1 },
-			model: 'jev-latest',
-			questions: {
-				route: {
-					type: 'noul',
-					instructions: 'Is this ticket urgent?',
-					criteria: { true: 'Needs a reply today', false: 'Can wait' },
-				},
-			},
+		expect(body.messages[1].content).toContain('Is this ticket urgent?');
+		expect(body.messages[1].content).toContain('Needs a reply today');
+		expect(body.messages[1].content).toContain('Can wait');
+		expect(body.response_format.json_schema.schema.properties.route).toMatchObject({
+			properties: { noul: { type: 'number' } },
+			required: ['noul'],
 		});
 	});
 
@@ -257,7 +253,7 @@ describe('Route by Noul', () => {
 		expect(outputs[0][0].json).toEqual({
 			ticket: 1,
 			route: { noul: 0.9 },
-			model: 'jev-1.13.0',
+			model: 'openai/gpt-4o-mini',
 		});
 	});
 
@@ -300,8 +296,8 @@ describe('Route by Noul', () => {
 		expect(outputs[0][0].json).toEqual({
 			ticket: 1,
 			route: { type: 'noul', noul: 0.9 },
-			model: 'jev-1.13.0',
-			usage: { input_tokens: 296, output_tokens: 20 },
+			model: 'openai/gpt-4o-mini',
+			usage: { prompt_tokens: 296, completion_tokens: 20 },
 		});
 	});
 
@@ -321,7 +317,7 @@ describe('Route by Noul', () => {
 		const { functions } = createFunctions(
 			noulParameters,
 			items,
-			() => ({ statusCode: 500, body: { detail: 'Server exploded' } }),
+			() => ({ statusCode: 500, body: { error: { message: 'Server exploded', code: 500 } } }),
 			true,
 		);
 		const outputs = await TypeSafeAi.prototype.execute.call(functions);
@@ -342,21 +338,7 @@ describe('Route by Score', () => {
 		'routeLevels.level': [{ level: 'Calm' }, { level: 'Frustrated' }, { level: 'Furious' }],
 	};
 
-	const scoreResponse = (score: number) => () => ({
-		statusCode: 200,
-		body: {
-			model: 'jev-1.13.0',
-			answers: {
-				route: {
-					type: 'score',
-					score,
-					confidence: 0.9,
-					legend: { '0': 'Calm', '1': 'Frustrated', '2': 'Furious' },
-				},
-			},
-			usage: { input_tokens: 296, output_tokens: 20 },
-		},
-	});
+	const scoreResponse = (score: number) => () => chat({ route: { score, confidence: 0.9 } });
 
 	async function route(parameters: Record<string, unknown>, score: number) {
 		const { functions, request } = createFunctions(parameters, items, scoreResponse(score));
@@ -365,18 +347,12 @@ describe('Route by Score', () => {
 
 	it('asks a score question with the levels in order, lowest first', async () => {
 		const { request } = await route(scoreParameters, 1);
-		const body = (request.mock.calls[0] as unknown as [unknown, { body: unknown }])[1].body;
+		const body = sentBody(request);
 
-		expect(body).toEqual({
-			state: { ticket: 1 },
-			model: 'jev-latest',
-			questions: {
-				route: {
-					type: 'score',
-					instructions: 'How frustrated is the customer?',
-					criteria: ['Calm', 'Frustrated', 'Furious'],
-				},
-			},
+		expect(body.messages[1].content).toContain('"0": "Calm"');
+		expect(body.messages[1].content).toContain('"2": "Furious"');
+		expect(body.response_format.json_schema.schema.properties.route).toMatchObject({
+			properties: { score: { type: 'integer', enum: [0, 1, 2] } },
 		});
 	});
 
@@ -388,7 +364,7 @@ describe('Route by Score', () => {
 		expect(outputs[1][0].json).toEqual({
 			ticket: 1,
 			route: { score: 1.3, confidence: 0.9 },
-			model: 'jev-1.13.0',
+			model: 'openai/gpt-4o-mini',
 		});
 		expect(outputs[2]).toHaveLength(0);
 	});
@@ -420,8 +396,8 @@ describe('Route by Score', () => {
 				confidence: 0.9,
 				legend: { '0': 'Calm', '1': 'Frustrated', '2': 'Furious' },
 			},
-			model: 'jev-1.13.0',
-			usage: { input_tokens: 296, output_tokens: 20 },
+			model: 'openai/gpt-4o-mini',
+			usage: { prompt_tokens: 296, completion_tokens: 20 },
 		});
 	});
 
@@ -441,7 +417,7 @@ describe('Route by Score', () => {
 		const { functions } = createFunctions(
 			scoreParameters,
 			items,
-			() => ({ statusCode: 500, body: { detail: 'Server exploded' } }),
+			() => ({ statusCode: 500, body: { error: { message: 'Server exploded', code: 500 } } }),
 			true,
 		);
 		const outputs = await TypeSafeAi.prototype.execute.call(functions);
@@ -461,14 +437,7 @@ describe('Evaluate', () => {
 		'questions.question': [{ id: 'is_urgent', instructions: 'Urgent?', type: 'noul' }],
 	};
 
-	const evaluateResponse = {
-		statusCode: 200,
-		body: {
-			model: 'jev-1.13.0',
-			answers: { is_urgent: { type: 'noul', noul: 0.85 } },
-			usage: { input_tokens: 296, output_tokens: 20 },
-		},
-	};
+	const evaluateResponse = chat({ is_urgent: { noul: 0.85 } });
 
 	it('simplifies the answers and omits usage by default', async () => {
 		const { functions } = createFunctions(evaluateParameters, items, () => evaluateResponse);
@@ -478,7 +447,7 @@ describe('Evaluate', () => {
 		expect(outputs[0][0].json).toEqual({
 			ticket: 1,
 			answers: { is_urgent: { noul: 0.85 } },
-			model: 'jev-1.13.0',
+			model: 'openai/gpt-4o-mini',
 		});
 	});
 
@@ -492,8 +461,8 @@ describe('Evaluate', () => {
 
 		expect(outputs[0][0].json).toEqual({
 			answers: { is_urgent: { type: 'noul', noul: 0.85 } },
-			model: 'jev-1.13.0',
-			usage: { input_tokens: 296, output_tokens: 20 },
+			model: 'openai/gpt-4o-mini',
+			usage: { prompt_tokens: 296, completion_tokens: 20 },
 		});
 	});
 
@@ -508,9 +477,7 @@ describe('Evaluate', () => {
 		);
 		await TypeSafeAi.prototype.execute.call(functions);
 
-		const body = (request.mock.calls[0] as unknown as [unknown, { body: { state: unknown } }])[1]
-			.body;
-		expect(body.state).toBe(sent);
+		expect(sentBody(request).messages[1].content).toMatch(new RegExp(`^State:\\n${sent}\\n`));
 	});
 
 	it('reports a 422 as one readable sentence', async () => {
@@ -528,7 +495,7 @@ describe('Evaluate', () => {
 		const { functions } = createFunctions(
 			evaluateParameters,
 			items,
-			() => ({ statusCode: 500, body: { detail: 'Server exploded' } }),
+			() => ({ statusCode: 500, body: { error: { message: 'Server exploded', code: 500 } } }),
 			true,
 		);
 		const outputs = await TypeSafeAi.prototype.execute.call(functions);
@@ -571,6 +538,48 @@ describe('Model', () => {
 	});
 
 	it('sends an ID entered directly', async () => {
-		expect(await postedModel({ mode: 'id', value: 'jev-1.13.0' })).toBe('jev-1.13.0');
+		expect(await postedModel({ mode: 'id', value: 'openai/gpt-4o-mini' })).toBe(
+			'openai/gpt-4o-mini',
+		);
+	});
+});
+
+describe('Model replies', () => {
+	const evaluateParameters: Record<string, unknown> = {
+		operation: 'evaluate',
+		model: { mode: 'id', value: 'openai/gpt-4o-mini' },
+		stateFormat: 'text',
+		stateText: 'Charged twice',
+		questionsFormat: 'fields',
+		'questions.question': [{ id: 'is_urgent', instructions: 'Urgent?', type: 'noul' }],
+	};
+
+	it('rejects a reply that is not JSON', async () => {
+		const { functions } = createFunctions(evaluateParameters, items, () => ({
+			statusCode: 200,
+			body: { model: 'm', choices: [{ message: { content: 'Yes, it is urgent' } }] },
+		}));
+
+		await expect(TypeSafeAi.prototype.execute.call(functions)).rejects.toThrow(
+			/did not return valid JSON/,
+		);
+	});
+
+	it('rejects a reply missing a question', async () => {
+		const { functions } = createFunctions(evaluateParameters, items, () => chat({}));
+
+		await expect(TypeSafeAi.prototype.execute.call(functions)).rejects.toThrow(
+			/no answer to question "is_urgent"/,
+		);
+	});
+
+	it('posts to the chat completions endpoint', async () => {
+		const { functions, request } = createFunctions(evaluateParameters, items, () =>
+			chat({ is_urgent: { noul: 0.7 } }),
+		);
+		await TypeSafeAi.prototype.execute.call(functions);
+
+		const [, options] = request.mock.calls[0] as unknown as [unknown, { url: string }];
+		expect(options.url).toBe('https://openrouter.ai/api/v1/chat/completions');
 	});
 });

@@ -6,18 +6,19 @@
 	"resources": {
 		"primaryDocumentation": [
 			{
-				"url": "https://docs.typesafe.ai"
+				"url": "https://github.com/typesafe-ai/n8n-nodes-typesafe-ai#readme"
 			}
 		],
 		"credentialDocumentation": [
 			{
-				"url": "https://docs.typesafe.ai"
+				"url": "https://openrouter.ai/docs"
 			}
 		]
 	},
 	"alias": [
 		"typesafe",
-		"jev",
+		"openrouter",
+		"llm",
 		"classify",
 		"classification",
 		"route",

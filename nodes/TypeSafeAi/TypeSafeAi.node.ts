@@ -203,14 +203,14 @@ function buildQuestions(
 
 export class TypeSafeAi implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'TypeSafe AI',
+		displayName: 'TypeSafe AI via OpenRouter',
 		name: 'typeSafeAi',
 		icon: { light: 'file:typeSafeAi.svg', dark: 'file:typeSafeAi.dark.svg' },
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{ $parameter["operation"] }}',
-		description: 'Ask TypeSafe typed questions and get calibrated probabilities',
-		defaults: { name: 'TypeSafe AI' },
+		description: 'Ask any OpenRouter model typed questions and route items by the answer',
+		defaults: { name: 'TypeSafe AI via OpenRouter' },
 		usableAsTool: true,
 		inputs: [NodeConnectionTypes.Main],
 		outputs: `={{ (${configuredOutputs})($parameter) }}`,
@@ -269,7 +269,7 @@ export class TypeSafeAi implements INodeType {
 					model: this.getNodeParameter('model', itemIndex, '', { extractValue: true }) as string,
 					questions: buildQuestions(this, context, operation),
 				} as IDataObject,
-				this.getNodeParameter('options.timeout', itemIndex, 5000) as number,
+				this.getNodeParameter('options.timeout', itemIndex, 60000) as number,
 			);
 
 			if (!isRoute) {
