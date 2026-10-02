@@ -10,7 +10,7 @@ import { NodeApiError } from 'n8n-workflow';
 
 export const CREDENTIAL_NAME = 'openRouterApi';
 export const DEFAULT_BASE_URL = 'https://openrouter.ai/api';
-export const DEFAULT_MODEL = 'typesafe/jev-1.13';
+export const DEFAULT_MODEL = '~typesafe/jev-latest';
 
 /** Limits the API itself imposes on a question's criteria */
 export const OPTION_BOUNDS = { min: 2, max: 255 };
@@ -141,7 +141,11 @@ export async function searchModels(
 	const needle = (filter ?? '').toLowerCase();
 	// Only TypeSafe's System One models answer the System One API
 	const results = (response.data ?? [])
-		.filter((model) => model.id.startsWith('typesafe/') && !model.id.endsWith('-router'))
+		.filter(
+			(model) =>
+				model.id === DEFAULT_MODEL ||
+				(model.id.startsWith('typesafe/') && !model.id.endsWith('-router')),
+		)
 		.filter((model) => `${model.id} ${model.name ?? ''}`.toLowerCase().includes(needle))
 		.map((model) => ({
 			name: model.name ?? model.id,

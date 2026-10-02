@@ -14,7 +14,7 @@ package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   routing are unchanged and the usage is billed to the OpenRouter account.
 - The **TypeSafe AI API** credential is replaced by an **OpenRouter API**
   credential (`openRouterApi`).
-- **Model** defaults to `typesafe/jev-1.13` and lists the TypeSafe models
+- **Model** defaults to `~typesafe/jev-latest` and lists the TypeSafe models
   OpenRouter serves.
 
 ## 0.9.0

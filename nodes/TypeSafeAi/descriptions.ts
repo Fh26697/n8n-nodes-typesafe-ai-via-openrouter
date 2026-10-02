@@ -218,7 +218,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 		name: 'model',
 		type: 'resourceLocator',
 		required: true,
-		default: { mode: 'list', value: DEFAULT_MODEL, cachedResultName: 'TypeSafe: Jev 1.13' },
+		default: { mode: 'list', value: DEFAULT_MODEL, cachedResultName: 'TypeSafe: Jev (latest)' },
 		description: 'Which model to use',
 		modes: [
 			{

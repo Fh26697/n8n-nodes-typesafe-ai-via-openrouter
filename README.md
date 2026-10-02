@@ -38,7 +38,7 @@ Both operations send one request per input item. Each request includes the item'
 
 All the questions in a request are asked about the same state. The [State](https://docs.typesafe.ai/concepts/state) page covers how to structure it.
 
-**Model** lists the TypeSafe models OpenRouter serves, and defaults to `typesafe/jev-1.13`. The [Models](https://docs.typesafe.ai/models) page describes each one and its aliases.
+**Model** lists the TypeSafe models OpenRouter serves, and defaults to `~typesafe/jev-latest`, which always points at the latest Jev,. The [Models](https://docs.typesafe.ai/models) page describes each one and its aliases.
 
 ### Evaluate
 

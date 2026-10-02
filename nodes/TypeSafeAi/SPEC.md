@@ -178,14 +178,14 @@ offered there.
 
 ### 5.2 Model
 
-Required, both operations. Default `typesafe/jev-1.13`. The node reaches Jev through OpenRouter, which
+Required, both operations. Default `~typesafe/jev-latest`, the alias for the latest Jev. The node reaches Jev through OpenRouter, which
 serves TypeSafe's System One API at `POST {host}/v1/systemone`.
 
 The user MUST be able to either:
 
 1. **Pick from a list** of the TypeSafe models OpenRouter serves (IDs starting
-   `typesafe/`, excluding the chat router `typesafe/jev-router`; the
-   `~typesafe/jev-latest` alias is also a chat router and is not listed), fetched live
+   `typesafe/`, excluding the chat router `typesafe/jev-router`, plus the default
+   `~typesafe/jev-latest` alias), fetched live
    from `GET {host}/v1/models`, searchable, each entry showing the model's
    description; or
 2. **Enter an ID directly**, for example `typesafe/jev-1.13`.
